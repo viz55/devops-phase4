@@ -33,7 +33,7 @@ resource "aws_s3_bucket" "lab" {
 
   tags = {
     Name        = "devops-phase4-lab"
-    Environment = "lab"
+    Environment = "lab-v3"
   }
 }
 
@@ -52,4 +52,12 @@ output "bucket_name" {
 
 output "bucket_arn" {
   value = aws_s3_bucket.lab.arn
+}
+
+resource "aws_s3_bucket_versioning" "lab" {
+  bucket = aws_s3_bucket.lab.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
 }

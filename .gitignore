@@ -19,3 +19,8 @@ override.tf.json
 .env
 *.pem
 *.csv
+
+# Non-secret example variable files for 01-hcl-basics
+!01-hcl-basics/terraform.tfvars
+!01-hcl-basics/*.auto.tfvars
+!01-hcl-basics/cli.tfvars

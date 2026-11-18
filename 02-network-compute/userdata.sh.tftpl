@@ -1,0 +1,39 @@
+#!/bin/bash
+set -euxo pipefail
+export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=a
+
+# 1. Update packages
+apt-get update -y
+apt-get upgrade -y
+apt-get install -y ca-certificates curl
+
+# 2. Add Docker's official apt repository
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+
+CODENAME=$(. /etc/os-release && echo "$VERSION_CODENAME")
+ARCH=$(dpkg --print-architecture)
+cat > /etc/apt/sources.list.d/docker.sources << EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $CODENAME
+Components: stable
+Architectures: $ARCH
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+# 3. Install Docker and enable the service
+apt-get update -y
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+systemctl enable --now docker
+
+# 4. Let the default user run docker without sudo
+usermod -aG docker ${default_user}
+
+# 5. Run nginx on port 80
+docker run -d --name web --restart unless-stopped -p 80:80 nginx:${nginx_tag}
+
+echo "USER-DATA FINISHED"
+echo "version 2" > /opt/version.txt

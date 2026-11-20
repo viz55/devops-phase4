@@ -3,12 +3,13 @@ resource "aws_key_pair" "lab" {
   public_key = var.ssh_public_key
 
   tags = {
-    Name = "${local.name_prefix}-key"
+    Name       = "${local.name_prefix}-key"
+    CostCenter = "lab1"
   }
 }
 
 resource "aws_instance" "web" {
-  
+
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
   subnet_id                   = aws_subnet.public["public-1"].id

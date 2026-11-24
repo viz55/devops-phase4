@@ -1,18 +1,10 @@
-resource "aws_default_security_group" "default" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "${local.name_prefix}-default-locked"
-  }
-}
-
 resource "aws_security_group" "web" {
-  name_prefix = "${local.name_prefix}-web-"
-  description = "Web server: HTTP and HTTPS from anywhere, SSH from one address"
-  vpc_id      = aws_vpc.main.id
+  name_prefix = "${var.name_prefix}-web-"
+  description = var.description
+  vpc_id      = var.vpc_id
 
   tags = {
-    Name = "${local.name_prefix}-web-sg"
+    Name = "${var.name_prefix}-web-sg"
   }
 
   lifecycle {
@@ -21,45 +13,44 @@ resource "aws_security_group" "web" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "web" {
-  #checkov:skip=CKV_AWS_260:Ports 80 and 443 are open to the internet on purpose because this is a public web server
   for_each = toset([for p in var.web_ports : tostring(p)])
 
   security_group_id = aws_security_group.web.id
   description       = "Allow TCP ${each.value} from anywhere"
-  cidr_ipv4         = "0.0.0.0/0"
+  cidr_ipv4         = var.web_ingress_cidr
   ip_protocol       = "tcp"
   from_port         = tonumber(each.value)
   to_port           = tonumber(each.value)
 
   tags = {
-    Name = "${local.name_prefix}-web-in-${each.value}"
+    Name = "${var.name_prefix}-web-in-${each.value}"
   }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "ssh" {
   security_group_id = aws_security_group.web.id
-  description       = "SSH from my laptop only"
+  description       = var.ssh_description
   cidr_ipv4         = var.ssh_allowed_cidr
   ip_protocol       = "tcp"
-  from_port         = 22
-  to_port           = 22
+  from_port         = var.ssh_port
+  to_port           = var.ssh_port
 
   tags = {
-    Name = "${local.name_prefix}-ssh-in"
+    Name = "${var.name_prefix}-ssh-in"
   }
 }
 
 resource "aws_vpc_security_group_egress_rule" "web" {
-  for_each = toset(["80", "443"])
+  for_each = toset([for p in var.egress_ports : tostring(p)])
 
   security_group_id = aws_security_group.web.id
   description       = "Allow outbound TCP ${each.value} for package and image downloads"
-  cidr_ipv4         = "0.0.0.0/0"
+  cidr_ipv4         = var.egress_cidr
   ip_protocol       = "tcp"
   from_port         = tonumber(each.value)
   to_port           = tonumber(each.value)
 
   tags = {
-    Name = "${local.name_prefix}-web-out-${each.value}"
+    Name = "${var.name_prefix}-web-out-${each.value}"
   }
 }

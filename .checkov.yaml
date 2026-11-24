@@ -1,0 +1,17 @@
+directory:
+  - modules
+  - environments
+framework:
+  - terraform
+compact: true
+quiet: true
+skip-check:
+  # The web server needs a public IP to serve the website. A load balancer or NAT would add hourly cost.
+  - CKV_AWS_88
+  # The instances call no AWS APIs, and creating an IAM role is outside the lab policy.
+  - CKV2_AWS_41
+  # Flow logs need an IAM role and a log group, which the lab policy does not allow and which add cost.
+  - CKV2_AWS_11
+  # Ports 80 and 443 are open to the internet on purpose because these are public web servers.
+  - CKV_AWS_260
+  - CKV2_AWS_5

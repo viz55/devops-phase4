@@ -27,3 +27,6 @@ override.tf.json
 
 # Non-secret environment settings (personal values go in local.auto.tfvars, which stays ignored)
 !environments/*/terraform.tfvars
+
+# Lock files are committed for environments, not for reusable modules
+modules/**/.terraform.lock.hcl
